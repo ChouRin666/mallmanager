@@ -14,7 +14,7 @@
         </el-col>
         <el-col :span="2">
             <div class="grid-content bg-purple">
-                <a href="#">退出</a>
+                <a href="#" @click.prevent="handleSignout()">退出</a>
             </div>
         </el-col>
       </el-row>
@@ -110,6 +110,17 @@ export default {
 
         // 如果没有 token，页面跳转到登录界面
         if(!token) {
+            this.$router.push({name: 'login'});
+        }
+    },
+    methods: {
+
+        handleSignout() {
+            // 清除 token
+            localStorage.removeItem('token');
+            // 提示退出成功
+            this.$message.success('退出成功');
+            // 跳转到登录界面
             this.$router.push({name: 'login'});
         }
     }
