@@ -5,6 +5,7 @@ import Router from 'vue-router';
 // webpack 封装好路径，通过 @ 寻找 src 文件夹下的文件。  @ -> src
 import Login from '@/components/login/login'
 import Home from '@/components/home/home'
+import Users from '@/components/users/users'
 
 Vue.use(Router);
 
@@ -19,6 +20,13 @@ export default new Router({
       path: '/',
       name: 'home',
       component: Home,
+      children: [
+        {
+          path: 'users',
+          name: 'users',
+          component: Users
+        }
+      ]
     },
   ],
 });
