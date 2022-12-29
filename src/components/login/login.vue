@@ -78,6 +78,8 @@ export default {
 
       // 登录成功
       if(status == 200) {
+        // 0.保存 token
+        localStorage.setItem('token', data.token);
         // 1.提示成功
         this.$message.success(msg);
         // 2.跳转到home
