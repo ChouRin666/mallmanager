@@ -100,7 +100,21 @@
 </template>
 
 <script>
-export default {};
+export default {
+
+    // newVue 之前自动触发
+    beforeCreate() {
+
+        // 获取 token
+        const token = localStorage.getItem('token');
+
+        // 如果没有 token，页面跳转到登录界面
+        if(!token) {
+            this.$router.push({name: 'login'});
+        }
+    }
+
+};
 </script>
 
 <style>
