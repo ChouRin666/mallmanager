@@ -32,8 +32,9 @@ export default {
   },
   methods: {
     // 登录请求
-    handleLogin() {
+    /* handleLogin() {
 
+      // 异步代码，返回结果写在 then 方法的函数中
       this.$http.post('login', this.formdata)
           .then((res) => {
 
@@ -48,9 +49,9 @@ export default {
             // 登录成功
             if(status == 200) {
               // 1.提示成功
-              // 2.跳转到home
-              // this.$router.push({name: 'home'});
               this.$message.success(msg);
+              // 2.跳转到home
+              this.$router.push({name: 'home'});
             }
             else {
               // 登录失败
@@ -59,6 +60,34 @@ export default {
             }
             
           });
+    } */
+
+    // ES 7 提供 async + await 操作
+    // 使异步代码看起来像同步代码
+    async handleLogin() {
+
+      const res = await this.$http.post('login', this.formdata);
+
+      console.log(res);
+
+      // 对象结构赋值
+      const { 
+        data, 
+        meta: {msg, status}
+      } = res.data;
+
+      // 登录成功
+      if(status == 200) {
+        // 1.提示成功
+        this.$message.success(msg);
+        // 2.跳转到home
+        this.$router.push({name: 'home'});
+      }
+      else {
+        // 登录失败
+        // 1.提示错误消息
+        this.$message.error(msg);
+      }
     }
 
   }
