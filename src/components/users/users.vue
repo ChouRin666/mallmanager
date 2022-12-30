@@ -57,6 +57,7 @@
       <el-table-column label="用户状态" width="180">
         <template slot-scope="scope">
           <el-switch
+            @change="changeMgState(scope.row)"
             v-model="scope.row.mg_state"
             active-color="#13ce66"
             inactive-color="#ff4949"
@@ -184,6 +185,28 @@ export default {
     this.getUserList();
   },
   methods: {
+    // 修改用户状态
+    async changeMgState(user) {
+      // 发送请求
+      const res = await this.$http.put(
+        `users/${user.id}/state/${user.mg_state}`
+      );
+      // 由于使用 v-model 双向绑定用户的 mg_state 值，因此不需要主动为 mg_state 赋值
+      console.log(res);
+
+      const {
+        data,
+        meta: { msg, status },
+      } = res.data;
+
+      if (status == 200) {
+        // 提示设置状态成功
+        this.$message.success(msg);
+      } else {
+        // 提示设置状态失败
+        this.$message.error(msg);
+      }
+    },
     // 编辑用户（发送请求）
     async editUser() {
       // const res = await this.$http.put(`users/${this.currUserId}`, this.form);

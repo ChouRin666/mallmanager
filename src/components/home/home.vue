@@ -13,7 +13,7 @@
             </div>
         </el-col>
         <el-col :span="2">
-            <div class="grid-content bg-purple">
+            <div class="grid-content bg-purple divSignout">
                 <a href="#" @click.prevent="handleSignout()">退出</a>
             </div>
         </el-col>
@@ -105,7 +105,7 @@
 <script>
 export default {
 
-    // newVue 之前自动触发
+    // new Vue 之前自动触发
     beforeCreate() {
 
         // 获取 token
@@ -154,7 +154,10 @@ export default {
 
 .header a {
     text-decoration: none;
-    margin-top: 10px;
+}
+
+.divSignout {
+    padding-top: 10px;
 }
 
 .header a:hover {
@@ -168,6 +171,5 @@ export default {
 
 .main {
   background-color: #e9eef3;
-  /* height: 100%; */
 }
 </style>
