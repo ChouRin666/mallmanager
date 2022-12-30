@@ -25,12 +25,10 @@
     <!-- 表格 -->
     <el-table :data="userlist" style="width: 100%">
       <!-- type="index"  设置该列的每个单元格的内容是从 1 开始的序号 -->
-      <el-table-column type="index" label="#" width="60"> 
-      </el-table-column>
+      <el-table-column type="index" label="#" width="60"> </el-table-column>
       <el-table-column prop="username" label="姓名" width="100">
       </el-table-column>
-      <el-table-column prop="email" label="邮箱" width="260">
-      </el-table-column>
+      <el-table-column prop="email" label="邮箱" width="260"> </el-table-column>
       <el-table-column prop="mobile" label="电话" width="150">
       </el-table-column>
       <el-table-column label="创建日期" width="180">
@@ -43,18 +41,32 @@
             3、slot-scope 的值 userlist 其实就是 el-table 绑定的数据 userlist，
                 userlist.row 是指数组中的每个对象。
             4、slot-scope 的作用就是传值，会自动去上一级找最外层标签 el-table 
-                绑定的数据源 userlist。slot-scope 的属性可赋任意变量，
+                绑定的数据源 userlist。slot-scope 的属性可赋任意变量(如：scope)，
                 最终找到的数据源会把值传给该变量。
         -->
         <template slot-scope="userlist">
-            {{ userlist.row.create_time | fmtdate }}
+          {{ userlist.row.create_time | fmtdate }}
         </template>
-        
       </el-table-column>
-      <el-table-column prop="mg_state" label="用户状态" width="180">
+      <el-table-column label="用户状态" width="180">
+        <template slot-scope="scope">
+          <el-switch v-model="scope.row.mg_state"
+            active-color="#13ce66" inactive-color="#ff4949">
+          </el-switch>
+        </template>
       </el-table-column>
       <el-table-column label="操作"> 
+        <template>
+            <el-button size="medium" :plain="true" type="primary" icon="el-icon-edit" circle>
 
+            </el-button>
+            <el-button size="medium" :plain="true" type="danger" icon="el-icon-delete" circle>
+
+            </el-button>
+            <el-button size="medium" :plain="true" type="success" icon="el-icon-check" circle>
+
+            </el-button>
+        </template>
       </el-table-column>
     </el-table>
 
