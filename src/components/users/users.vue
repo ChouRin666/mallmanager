@@ -23,7 +23,7 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table :data="userlist" style="width: 100%">
+    <el-table :data="userlist" class="dataTable">
       <!-- type="index"  设置该列的每个单元格的内容是从 1 开始的序号 -->
       <el-table-column type="index" label="#" width="60"> </el-table-column>
       <el-table-column prop="username" label="姓名" width="100">
@@ -71,6 +71,15 @@
     </el-table>
 
     <!-- 分页 -->
+    <el-pagination class="pagination"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="pagenum"
+      :page-sizes="[1, 2, 3, 4, 5]"
+      :page-size="pagesize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total">
+    </el-pagination>
   </el-card>
 </template>
 
@@ -80,7 +89,7 @@ export default {
     return {
       query: "",
       pagenum: 1,
-      pagesize: 5,
+      pagesize: 2,
       total: 0,
       userlist: [],
     };
@@ -90,6 +99,20 @@ export default {
     this.getUserList();
   },
   methods: {
+    // 分页
+    handleSizeChange(val) {
+        // 每页显示条数变化时 触发
+        console.log(`每页 ${val} 条`);
+        this.pagesize = val;
+        this.pagenum = 1;
+        this.getUserList();
+    },
+    handleCurrentChange(val) {
+        // 当前页码改变时 触发
+        console.log(`当前页: ${val}`);
+        this.pagenum = val;
+        this.getUserList();
+    },
     // 获取用户列表的请求
     async getUserList() {
       //query  查询参数 可以为空
@@ -128,7 +151,7 @@ export default {
         // this.$message.error(msg);
         this.$message.warning(msg);
       }
-    },
+    }
   },
 };
 </script>
@@ -144,5 +167,14 @@ export default {
 
 .inputSearch {
   width: 400px;
+}
+
+.dataTable {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.pagination {
+    margin-top: 20px;
 }
 </style>
