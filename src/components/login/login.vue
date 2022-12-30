@@ -40,7 +40,7 @@ export default {
 
             console.log(res);
 
-            // 对象结构赋值
+            // 对象解构赋值
             const { 
               data, 
               meta: {msg, status}

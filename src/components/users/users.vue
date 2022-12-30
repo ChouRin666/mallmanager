@@ -23,19 +23,42 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table :data="tableData" style="width: 100%">
-        <!-- type="index"  设置该列的每个单元格的内容是从 1 开始的序号 -->
-      <el-table-column type="index" label="#" width="60"> </el-table-column>
-      <el-table-column prop="name" label="姓名" width="100"> </el-table-column>
-      <el-table-column prop="address" label="邮箱" width="260"> </el-table-column>
-      <el-table-column prop="name" label="电话" width="150"> </el-table-column>
-      <el-table-column prop="name" label="创建日期" width="180"> </el-table-column>
-      <el-table-column prop="name" label="用户状态" width="180"> </el-table-column>
-      <el-table-column prop="name" label="操作"> </el-table-column>
+    <el-table :data="userlist" style="width: 100%">
+      <!-- type="index"  设置该列的每个单元格的内容是从 1 开始的序号 -->
+      <el-table-column type="index" label="#" width="60"> 
+      </el-table-column>
+      <el-table-column prop="username" label="姓名" width="100">
+      </el-table-column>
+      <el-table-column prop="email" label="邮箱" width="260">
+      </el-table-column>
+      <el-table-column prop="mobile" label="电话" width="150">
+      </el-table-column>
+      <el-table-column label="创建日期" width="180">
+        <!-- {{ create_time | fmtdate }}  无效用法 -->
+        <!-- prop="create_time | fmtdate" 无效用法 -->
+        <!-- 
+            1、如果单元格内显示的内容不是字符串（文本），需要给被显示的内容外层包裹一个。
+            2、template 内部要用数据，设置 slot-scope 属性，
+                该属性的值需要使用数据 create_time 的数据源 userlist。
+            3、slot-scope 的值 userlist 其实就是 el-table 绑定的数据 userlist，
+                userlist.row 是指数组中的每个对象。
+            4、slot-scope 的作用就是传值，会自动去上一级找最外层标签 el-table 
+                绑定的数据源 userlist。slot-scope 的属性可赋任意变量，
+                最终找到的数据源会把值传给该变量。
+        -->
+        <template slot-scope="userlist">
+            {{ userlist.row.create_time | fmtdate }}
+        </template>
+        
+      </el-table-column>
+      <el-table-column prop="mg_state" label="用户状态" width="180">
+      </el-table-column>
+      <el-table-column label="操作"> 
+
+      </el-table-column>
     </el-table>
 
     <!-- 分页 -->
-
   </el-card>
 </template>
 
@@ -46,23 +69,8 @@ export default {
       query: "",
       pagenum: 1,
       pagesize: 5,
-      tableData: [{
-            date: '2016-05-02',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1518 弄'
-          }, {
-            date: '2016-05-04',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1517 弄'
-          }, {
-            date: '2016-05-01',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1519 弄'
-          }, {
-            date: '2016-05-03',
-            name: '王小虎',
-            address: '上海市普陀区金沙江路 1516 弄'
-          }]
+      total: 0,
+      userlist: [],
     };
   },
   created() {
@@ -72,22 +80,44 @@ export default {
   methods: {
     // 获取用户列表的请求
     async getUserList() {
-        //query  查询参数 可以为空
-        //pagenum 当前页码   不能为空
-        //pagesize 每页显示条数  不能为空
+      //query  查询参数 可以为空
+      //pagenum 当前页码   不能为空
+      //pagesize 每页显示条数  不能为空
 
-        // 获取 token
-        const AUTH_TOKEN = localStorage.getItem('token');
-        
-        //需要授权的API  必须在请求头中使用Authorization字段提供token令牌
-        this.$http.defaults.headers.common['Authorization'] = AUTH_TOKEN;
+      // 获取 token
+      const AUTH_TOKEN = localStorage.getItem("token");
 
-        const res = await this.$http.get(
-            `users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${this.pagesize}`
-        );
-        console.log(res);
-    }
-  }
+      //需要授权的API  必须在请求头中使用Authorization字段提供token令牌
+      this.$http.defaults.headers.common["Authorization"] = AUTH_TOKEN;
+
+      const res = await this.$http.get(
+        `users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${this.pagesize}`
+      );
+      console.log(res);
+
+      // 对象解构赋值
+      const {
+        meta: { status, msg },
+        data: { users, total },
+      } = res.data;
+
+      if (status == 200) {
+        // 给表格提供数据源
+        // this.userlist = res.data.data.users;  (详细写法)
+        this.userlist = users;
+
+        // 给 total 赋值
+        this.total = total;
+
+        // 提示成功消息
+        this.$message.success(msg);
+      } else {
+        // 提示错误消息
+        // this.$message.error(msg);
+        this.$message.warning(msg);
+      }
+    },
+  },
 };
 </script>
 
