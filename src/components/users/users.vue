@@ -67,6 +67,7 @@
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button
+            @click="showEditUserDia(scope.row)"
             size="medium"
             :plain="true"
             type="primary"
@@ -130,6 +131,29 @@
         <el-button type="primary" @click="addUser()">确 定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 编辑用户的对话框 -->
+    <el-dialog title="编辑用户" :visible.sync="dialogFormVisibleEdit">
+      <el-form :model="form">
+        <el-form-item label="用户名" label-width="100px">
+          <el-input
+            disabled
+            v-model="form.username"
+            autocomplete="off"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" label-width="100px">
+          <el-input v-model="form.email" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="电话" label-width="100px">
+          <el-input v-model="form.mobile" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisibleEdit = false">取 消</el-button>
+        <el-button type="primary" @click="editUser()">确 定</el-button>
+      </div>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -144,6 +168,7 @@ export default {
       userlist: [],
       // 添加对话框的属性
       dialogFormVisibleAdd: false,
+      dialogFormVisibleEdit: false,
       // 添加用户的表单数据
       form: {
         username: "",
@@ -151,6 +176,7 @@ export default {
         email: "",
         mobile: "",
       },
+      //   currUserId: -1
     };
   },
   created() {
@@ -158,6 +184,35 @@ export default {
     this.getUserList();
   },
   methods: {
+    // 编辑用户（发送请求）
+    async editUser() {
+      // const res = await this.$http.put(`users/${this.currUserId}`, this.form);
+      const res = await this.$http.put(`users/${this.form.id}`, this.form);
+      console.log(res);
+
+      if (res.data.meta.status == 200) {
+        // 提示更新成功
+        this.$message.success(res.data.meta.msg);
+
+        // 更新用户列表信息（视图）
+        this.getUserList();
+      } else {
+        // 提示更新失败
+        this.$message.error(res.data.meta.msg);
+      }
+
+      // 关闭“编辑用户”对话框
+      this.dialogFormVisibleEdit = false;
+    },
+    // 显示“编辑用户”对话框
+    showEditUserDia(user) {
+      // console.log(user);
+
+      // 为表单的列绑定 user 对象的属性
+      this.form = user;
+      // this.currUserId = user.id;
+      this.dialogFormVisibleEdit = true;
+    },
     // 显示“删除用户”消息盒子
     showDeleUserMsgBox(userId) {
       this.$confirm("此操作将永久删除该用户, 是否继续?", "提示", {
@@ -170,24 +225,22 @@ export default {
           const res = await this.$http.delete(`users/${userId}`);
           console.log(res);
 
-          if(res.data.meta.status == 200) {
+          if (res.data.meta.status == 200) {
             this.pagenum = 1;
             // 更新用户列表信息（视图）
             this.getUserList();
             // 提示删除成功
             this.$message({
-                type: "success",
-                message: res.data.meta.msg,
+              type: "success",
+              message: res.data.meta.msg,
             });
-          }
-          else {
+          } else {
             // 提示删除失败
             this.$message({
-                type: "error",
-                message: res.data.meta.msg,
+              type: "error",
+              message: res.data.meta.msg,
             });
           }
-          
         })
         .catch(() => {
           this.$message({
@@ -232,6 +285,10 @@ export default {
     },
     // 显示“添加用户”对话框
     showAddUserDia() {
+      // 由于添加用户和编辑用户使用同一个数据源 form，因此在添加用户前，先清空数据
+      this.form = {};
+
+      // 显示“添加用户”对话框
       this.dialogFormVisibleAdd = true;
     },
     // 搜索框清空后重新加载全部用户信息
