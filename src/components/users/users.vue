@@ -12,13 +12,17 @@
     <el-row class="searchRow">
       <el-col>
         <el-input
+          @clear="loadUserList()"
+          clearable
           placeholder="请输入内容"
           v-model="query"
           class="input-with-select inputSearch"
         >
-          <el-button slot="append" icon="el-icon-search"></el-button>
+          <el-button 
+          @click="searchUser()"
+          slot="append" icon="el-icon-search"></el-button>
         </el-input>
-        <el-button type="success">添加用户</el-button>
+        <el-button type="success" @click="showAddUserDia()">添加用户</el-button>
       </el-col>
     </el-row>
 
@@ -57,13 +61,16 @@
       </el-table-column>
       <el-table-column label="操作"> 
         <template>
-            <el-button size="medium" :plain="true" type="primary" icon="el-icon-edit" circle>
+            <el-button size="medium" :plain="true" 
+                type="primary" icon="el-icon-edit" circle>
 
             </el-button>
-            <el-button size="medium" :plain="true" type="danger" icon="el-icon-delete" circle>
+            <el-button size="medium" :plain="true" 
+                type="danger" icon="el-icon-delete" circle>
 
             </el-button>
-            <el-button size="medium" :plain="true" type="success" icon="el-icon-check" circle>
+            <el-button size="medium" :plain="true" 
+                type="success" icon="el-icon-check" circle>
 
             </el-button>
         </template>
@@ -80,6 +87,30 @@
       layout="total, sizes, prev, pager, next, jumper"
       :total="total">
     </el-pagination>
+
+    <!-- 对话框 -->
+    <!-- 添加用户的对话框 -->
+    <el-dialog title="添加用户" :visible.sync="dialogFormVisibleAdd">
+        <el-form :model="form">
+            <el-form-item label="用户名" label-width="100px">
+            <el-input v-model="form.username" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="密码" label-width="100px">
+            <el-input v-model="form.password" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="邮箱" label-width="100px">
+            <el-input v-model="form.email" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="电话" label-width="100px">
+            <el-input v-model="form.mobile" autocomplete="off"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisibleAdd = false">取 消</el-button>
+            <el-button type="primary" @click="addUser()">确 定</el-button>
+        </div>
+    </el-dialog>
+
   </el-card>
 </template>
 
@@ -92,6 +123,15 @@ export default {
       pagesize: 2,
       total: 0,
       userlist: [],
+      // 添加对话框的属性
+      dialogFormVisibleAdd: false,
+      // 添加用户的表单数据
+      form: {
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
+      }
     };
   },
   created() {
@@ -99,17 +139,68 @@ export default {
     this.getUserList();
   },
   methods: {
+    // 添加用户（发送请求）
+    async addUser() {
+        const res = await this.$http.post('users', this.form);
+        console.log(res);
+
+        const {
+            data,
+            meta: {
+                msg,
+                status
+            }
+        } = res.data;
+
+        if(status == 201) {
+            // 提示创建成功
+            this.$message.success(msg);
+            // 更新用户列表信息（视图）
+            this.getUserList();
+            // 清空对话框中的文本值
+            this.form = {};
+
+            // 另一种写法：遍历清空对话框中的文本值（不推荐）
+            /* for (const key in this.form) {
+                if (this.form.hasOwnProperty(key)) {
+                    this.form[key] = "";
+                }
+            } */
+        }
+        else {
+            // 提示错误信息
+            this.$message.warning(msg);
+            // 清空对话框中的文本值
+            this.form = {};
+        }
+
+        // 关闭“添加用户”对话框
+        this.dialogFormVisibleAdd = false;
+        
+    },
+    // 显示“添加用户”对话框
+    showAddUserDia() {
+        this.dialogFormVisibleAdd = true;
+    },
+    // 搜索框清空后重新加载全部用户信息
+    loadUserList() {
+        this.getUserList();
+    },
+    // 搜索用户
+    searchUser() {
+        this.getUserList();
+    },
     // 分页
     handleSizeChange(val) {
         // 每页显示条数变化时 触发
-        console.log(`每页 ${val} 条`);
+        // console.log(`每页 ${val} 条`);
         this.pagesize = val;
         this.pagenum = 1;
         this.getUserList();
     },
     handleCurrentChange(val) {
         // 当前页码改变时 触发
-        console.log(`当前页: ${val}`);
+        // console.log(`当前页: ${val}`);
         this.pagenum = val;
         this.getUserList();
     },
@@ -145,7 +236,7 @@ export default {
         this.total = total;
 
         // 提示成功消息
-        this.$message.success(msg);
+        // this.$message.success(msg);
       } else {
         // 提示错误消息
         // this.$message.error(msg);
