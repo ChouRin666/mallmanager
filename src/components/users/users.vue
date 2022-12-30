@@ -86,6 +86,7 @@
           >
           </el-button>
           <el-button
+            @click="showSetUserRoleDia(scope.row)"
             size="medium"
             :plain="true"
             type="success"
@@ -155,6 +156,34 @@
         <el-button type="primary" @click="editUser()">确 定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 分配角色的对话框 -->
+    <el-dialog title="分配角色" :visible.sync="dialogFormVisibleRole">
+      <el-form :model="form">
+        <el-form-item label="用户名" label-width="100px">
+          {{ currUserName }}
+        </el-form-item>
+        <el-form-item label="角色" label-width="100px">
+          <!-- 下拉框的特性：
+                如果 select 绑定的数据的值和 option 的 value 值一样，
+                此时显示的是该 option 的 label 值。
+             -->
+          <el-select v-model="currRoleId" placeholder="请选择">
+            <el-option label="请选择" :value="-1"></el-option>
+            <el-option
+              v-for="(item, i) in rolelist"
+              :label="item.roleName"
+              :value="item.id"
+              :key="i"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisibleRole = false">取 消</el-button>
+        <el-button type="primary" @click="setRole()">确 定</el-button>
+      </div>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -170,6 +199,7 @@ export default {
       // 添加对话框的属性
       dialogFormVisibleAdd: false,
       dialogFormVisibleEdit: false,
+      dialogFormVisibleRole: false,
       // 添加用户的表单数据
       form: {
         username: "",
@@ -177,7 +207,12 @@ export default {
         email: "",
         mobile: "",
       },
-      //   currUserId: -1
+      // 分配角色
+      currRoleId: -1,
+      currUserName: "",
+      // 角色列表
+      rolelist: [],
+      currUserId: -1,
     };
   },
   created() {
@@ -185,6 +220,52 @@ export default {
     this.getUserList();
   },
   methods: {
+    // 分配用户角色
+    async setRole() {
+      // 修改用户角色（发送请求）
+      const res = await this.$http.put(`users/${this.currUserId}/role`, {
+        rid: this.currRoleId,
+      });
+
+      // console.log(res);
+
+      // 对象解构赋值
+      const {
+        data,
+        meta: { msg, status },
+      } = res.data;
+
+      if (status == 200) {
+        // 提示更改角色成功
+        this.$message.success(msg);
+      } else {
+        // 提示更改角色失败
+        this.$message.error(msg);
+      }
+
+      // 关闭“分配角色”的对话框
+      this.dialogFormVisibleRole = false;
+    },
+    // 打开“分配角色”的对话框
+    async showSetUserRoleDia(user) {
+      // 获取当前用户的用户名
+      this.currUserName = user.username;
+      this.currUserId = user.id;
+
+      // 获取所有的角色
+      const roleRes = await this.$http.get(`roles`);
+      // console.log(roleRes);
+      this.rolelist = roleRes.data.data;
+
+      // 根据用户 id 获取用户信息
+      const userRes = await this.$http.get(`users/${user.id}`);
+      // console.log(userRes);
+      // 获取当前用户的角色 id
+      this.currRoleId = userRes.data.data.rid;
+
+      // 打开“分配角色”的对话框
+      this.dialogFormVisibleRole = true;
+    },
     // 修改用户状态
     async changeMgState(user) {
       // 发送请求
@@ -192,7 +273,7 @@ export default {
         `users/${user.id}/state/${user.mg_state}`
       );
       // 由于使用 v-model 双向绑定用户的 mg_state 值，因此不需要主动为 mg_state 赋值
-      console.log(res);
+      // console.log(res);
 
       const {
         data,
@@ -211,7 +292,7 @@ export default {
     async editUser() {
       // const res = await this.$http.put(`users/${this.currUserId}`, this.form);
       const res = await this.$http.put(`users/${this.form.id}`, this.form);
-      console.log(res);
+      // console.log(res);
 
       if (res.data.meta.status == 200) {
         // 提示更新成功
@@ -246,7 +327,7 @@ export default {
         .then(async () => {
           // 发送删除用户的请求
           const res = await this.$http.delete(`users/${userId}`);
-          console.log(res);
+          // console.log(res);
 
           if (res.data.meta.status == 200) {
             this.pagenum = 1;
@@ -275,7 +356,7 @@ export default {
     // 添加用户（发送请求）
     async addUser() {
       const res = await this.$http.post("users", this.form);
-      console.log(res);
+      // console.log(res);
 
       const {
         data,
@@ -320,6 +401,8 @@ export default {
     },
     // 搜索用户
     searchUser() {
+      // 每次查询之前，把页码设置为 1
+      this.pagenum = 1;
       this.getUserList();
     },
     // 分页
@@ -351,7 +434,8 @@ export default {
       const res = await this.$http.get(
         `users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${this.pagesize}`
       );
-      console.log(res);
+
+      // console.log(res);
 
       // 对象解构赋值
       const {
