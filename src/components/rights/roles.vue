@@ -31,10 +31,7 @@
           >
             <el-col :span="4">
               <!-- 展示一级权限 -->
-              <el-tag
-                closable
-                @close="deleteRights(scope.row.id, itemLevel1.id)"
-              >
+              <el-tag closable @close="deleteRights(scope.row, itemLevel1.id)">
                 {{ itemLevel1.authName }}
               </el-tag>
               <!-- Icon 图标：直接通过设置类名为 el-icon-iconName 来使用即可 -->
@@ -47,7 +44,7 @@
                   <el-tag
                     closable
                     type="success"
-                    @close="deleteRights(scope.row.id, itemLevel2.id)"
+                    @close="deleteRights(scope.row, itemLevel2.id)"
                   >
                     {{ itemLevel2.authName }}
                   </el-tag>
@@ -57,7 +54,7 @@
                 <el-col :span="20">
                   <!-- 展示三级权限 -->
                   <el-tag
-                    @close="deleteRights(scope.row.id, itemLevel3.id)"
+                    @close="deleteRights(scope.row, itemLevel3.id)"
                     v-for="(itemLevel3, i) in itemLevel2.children"
                     :key="i"
                     closable
@@ -171,14 +168,14 @@ export default {
   },
   methods: {
     // 删除角色指定权限
-    async deleteRights(roleId, rightId) {
-      // roleId：角色id，rightId：权限id
-      const res = await this.$http.delete(`roles/${roleId}/rights/${rightId}`);
+    async deleteRights(role, rightId) {
+      // role：当前角色对象，roleId：角色id，rightId：权限id
+      const res = await this.$http.delete(`roles/${role.id}/rights/${rightId}`);
       console.log(res);
 
       // 对象解构赋值
       const {
-        data,
+        data, // 返回的 data, 是当前角色下最新的权限数据
         meta: { msg, status },
       } = res.data;
 
@@ -186,8 +183,11 @@ export default {
         // 提示取消权限成功
         this.$message.success(msg);
 
-        // 更新角色和权限列表信息（视图）
-        this.getRolesList();
+        // 更新角色和权限列表信息（视图），会刷新整个视图，用户体验感不好
+        // this.getRolesList();
+
+        // 局部刷新（取消哪个角色就更新哪个角色的权限列表）
+        role.children = data;
       } else {
         // 提示取消权限失败
         this.$message.error(msg);
