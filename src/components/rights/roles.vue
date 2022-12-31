@@ -12,7 +12,54 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table :data="rolesList" class="dataTable">
+    <el-table :data="rolesList" height="800px" class="dataTable">
+      <el-table-column type="expand" width="100px">
+        <!-- 
+          页面布局如果是行列问题，考虑使用 for 循环嵌套输出 el-tag 。
+          el-tag 的 type 属性控制标签颜色：
+          type: ''  蓝色
+          type: 'success'  绿色
+          type: 'info'  灰色
+          type: 'warning'  黄色
+          type: 'danger'  红色
+        -->
+        <template slot-scope="scope">
+          <el-row v-for="(itemLevel1, i) in scope.row.children" :key="i">
+            <el-col :span="4">
+              <!-- 展示一级权限 -->
+              <el-tag closable>
+                {{ itemLevel1.authName }}
+              </el-tag>
+              <!-- Icon 图标：直接通过设置类名为 el-icon-iconName 来使用即可 -->
+              <i class="el-icon-arrow-right"></i>
+            </el-col>
+            <el-col :span="20">
+              <el-row v-for="(itemLevel2, i) in itemLevel1.children" :key="i">
+                <el-col :span="4">
+                  <!-- 展示二级权限 -->
+                  <el-tag closable type="success">
+                    {{ itemLevel2.authName }}
+                  </el-tag>
+                  <!-- Icon 图标：直接通过设置类名为 el-icon-iconName 来使用即可 -->
+                  <i class="el-icon-arrow-right"></i>
+                </el-col>
+                <el-col :span="20">
+                  <!-- 展示三级权限 -->
+                  <el-tag
+                    v-for="(itemLevel3, i) in itemLevel2.children"
+                    :key="i"
+                    closable
+                    type="warning"
+                    class="roleTag"
+                  >
+                    {{ itemLevel3.authName }}
+                  </el-tag>
+                </el-col>
+              </el-row>
+            </el-col>
+          </el-row>
+        </template>
+      </el-table-column>
       <!-- type="index"  设置该列的每个单元格的内容是从 1 开始的序号 -->
       <el-table-column type="index" label="#" width="100px"> </el-table-column>
       <el-table-column prop="roleName" label="角色名称" width="200px">
@@ -212,7 +259,7 @@ export default {
     async getRolesList() {
       // 已在自定义插件模块 axios 中，为请求头设置 Authorization 字段提供 token 令牌
       const res = await this.$http.get(`roles`);
-      // console.log(res);
+      console.log(res);
 
       // 对象解构赋值
       const {
@@ -240,5 +287,9 @@ export default {
 
 .dataTable {
   margin-top: 20px;
+}
+
+.roleTag {
+  margin: 5px;
 }
 </style>
