@@ -119,11 +119,11 @@
     <!-- 添加用户的对话框 -->
     <el-dialog title="添加用户" :visible.sync="dialogFormVisibleAdd">
       <el-form :model="form">
-        <el-form-item label="用户名" label-width="100px">
+        <el-form-item label="用户名" required label-width="100px">
           <el-input v-model="form.username" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="密码" label-width="100px">
-          <el-input v-model="form.password" autocomplete="off"></el-input>
+        <el-form-item label="密码" required label-width="100px">
+          <el-input v-model="form.password" show-password autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" label-width="100px">
           <el-input v-model="form.email" autocomplete="off"></el-input>
@@ -141,7 +141,7 @@
     <!-- 编辑用户的对话框 -->
     <el-dialog title="编辑用户" :visible.sync="dialogFormVisibleEdit">
       <el-form :model="form">
-        <el-form-item label="用户名" label-width="100px">
+        <el-form-item label="用户名" required label-width="100px">
           <el-input
             disabled
             v-model="form.username"
@@ -299,13 +299,13 @@ export default {
       // console.log(res);
 
       if (res.data.meta.status == 200) {
-        // 提示更新成功
+        // 提示更新用户成功
         this.$message.success(res.data.meta.msg);
 
         // 更新用户列表信息（视图）
         this.getUserList();
       } else {
-        // 提示更新失败
+        // 提示更新用户失败
         this.$message.error(res.data.meta.msg);
       }
 
@@ -337,13 +337,13 @@ export default {
             this.pagenum = 1;
             // 更新用户列表信息（视图）
             this.getUserList();
-            // 提示删除成功
+            // 提示删除用户成功
             this.$message({
               type: "success",
               message: res.data.meta.msg,
             });
           } else {
-            // 提示删除失败
+            // 提示删除用户失败
             this.$message({
               type: "error",
               message: res.data.meta.msg,
@@ -368,12 +368,10 @@ export default {
       } = res.data;
 
       if (status == 201) {
-        // 提示创建成功
+        // 提示创建用户成功
         this.$message.success(msg);
         // 更新用户列表信息（视图）
         this.getUserList();
-        // 清空对话框中的文本值
-        this.form = {};
 
         // 另一种写法：遍历清空对话框中的文本值（不推荐）
         /* for (const key in this.form) {
@@ -384,9 +382,10 @@ export default {
       } else {
         // 提示错误信息
         this.$message.warning(msg);
-        // 清空对话框中的文本值
-        this.form = {};
       }
+
+      // 清空对话框中的文本值
+      this.form = {};
 
       // 关闭“添加用户”对话框
       this.dialogFormVisibleAdd = false;
