@@ -161,11 +161,17 @@
           isLeaf	指定节点是否为叶子节点，仅在指定了 lazy 属性的情况下生效
         4、show-checkbox	节点是否可被选择（是否显示 CheckBox）
       -->
+      <!-- 
+        逐个获取所有权限的 id 值需要三层循环遍历数组，比较麻烦
+        :default-expanded-keys="expandedKeyArr"  
+        可使用 default-expand-all 属性完成展开所有树形节点的功能
+      -->
       <el-tree
         :data="rightsTreeList"
         show-checkbox
         node-key="id"
-        :default-expanded-keys="expandedKeyArr"  
+        default-expand-all
+        :default-checked-keys="checkedKeysArr"
         :props="defaultProps"
       >
       </el-tree>
@@ -203,7 +209,9 @@ export default {
         label: "authName", // 显示当前节点文本值的属性名
       },
       // 默认展开的所有节点
-      expandedKeyArr: [],
+      // expandedKeyArr: [],
+      // 默认选中的节点
+      checkedKeysArr: [101, 104],
     };
   },
   methods: {
@@ -212,7 +220,7 @@ export default {
       // 获取树形结构的所有权限数据
       // type 值为 list 或 tree , list 列表显示权限, tree 树状显示权限
       const res = await this.$http.get(`rights/tree`);
-      console.log(res);
+      // console.log(res);
 
       // 对象解构赋值
       const {
@@ -227,22 +235,52 @@ export default {
         // 树形结构的所有权限数据
         this.rightsTreeList = data;
 
-        // 把一级、二级、三级权限的所有 id 都存储到临时数组 tempArr 中
-        var tempArr = [];
+        // 把一级、二级、三级权限的所有 id 都存储到临时数组 tempExpandedArr 中
+        /* var tempExpandedArr = [];
         this.rightsTreeList.forEach((itemLevel1) => {
-          tempArr.push(itemLevel1.id);
+          // 把一级权限的 id 添加到数组中
+          tempExpandedArr.push(itemLevel1.id);
 
           itemLevel1.children.forEach((itemLevel2) => {
-            tempArr.push(itemLevel2.id);
+            // 把二级权限的 id 添加到数组中
+            tempExpandedArr.push(itemLevel2.id);
 
             itemLevel2.children.forEach((itemLevel3) => {
-              tempArr.push(itemLevel3.id);
+              // 把三级权限的 id 添加到数组中
+              tempExpandedArr.push(itemLevel3.id);
             });
           });
         });
 
-        this.expandedKeyArr = tempArr;
-        // console.log(tempArr);
+        // 为 :default-expanded-keys 属性赋值，值为 expandedKeyArr 数组
+        this.expandedKeyArr = tempExpandedArr; */
+
+        /* 
+          把当前角色 role 分配的权限 id 都存储到临时数组 tempCheckedArr 中。
+          由于树形结构组件的特性，子节点被全部选中或部分选中，
+          上级父节点会自动出现相应的全选或半选状态，因此不宜把一级和二级权限的 id 
+          存储到临时数组 tempCheckedArr 中，否则会出现以下 bug：
+          三级子节点部分选中，但上面的一级和二级父节点的状态仍然是全选状态！
+        */
+        // console.log(role);
+        var tempCheckedArr = [];
+        role.children.forEach((itemLevel1) => {
+          // 把一级权限的 id 添加到数组中
+          // tempCheckedArr.push(itemLevel1.id);  
+
+          itemLevel1.children.forEach((itemLevel2) => {
+            // 把二级权限的 id 添加到数组中
+            // tempCheckedArr.push(itemLevel2.id);
+
+            itemLevel2.children.forEach((itemLevel3) => {
+              // 把三级权限的 id 添加到数组中
+              tempCheckedArr.push(itemLevel3.id);
+            });
+          });
+        });
+
+        // 为 :default-checked-keys 属性赋值，值为 checkedKeysArr 数组
+        this.checkedKeysArr = tempCheckedArr;
       } else {
         // 提示获取权限列表失败
         this.$message.error(msg);
