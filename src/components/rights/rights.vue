@@ -71,8 +71,9 @@ export default {
 
       if (status == 200) {
         this.rightsList = data;
+
         // 提示获取权限列表成功
-        this.$message.success(msg);
+        // this.$message.success(msg);
       } else {
         // 提示获取权限列表失败
         this.$message.error(msg);

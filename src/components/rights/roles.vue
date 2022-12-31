@@ -215,6 +215,7 @@ export default {
     };
   },
   methods: {
+    // 编辑权限（发送请求）
     async setRoleRights() {
       /* 
         在 Vue 中获取 el-tree 组件的 DOM 元素的步骤：
