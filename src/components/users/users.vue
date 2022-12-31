@@ -44,14 +44,15 @@
         <!-- {{ create_time | fmtdate }}  无效用法 -->
         <!-- prop="create_time | fmtdate" 无效用法 -->
         <!-- 
-            1、如果单元格内显示的内容不是字符串（文本），需要给被显示的内容外层包裹一个。
+            1、如果单元格内显示的内容不是字符串（文本），
+              需要给被显示的内容外层包裹一个 template。
             2、template 内部要用数据，设置 slot-scope 属性，
-                该属性的值需要使用数据 create_time 的数据源 userlist。
+              该属性的值需要使用数据 create_time 的数据源 userlist。
             3、slot-scope 的值 userlist 其实就是 el-table 绑定的数据 userlist，
-                userlist.row 是指数组中的每个对象。
+              userlist.row 是指数组中的每个对象。
             4、slot-scope 的作用就是传值，会自动去上一级找最外层标签 el-table 
-                绑定的数据源 userlist。slot-scope 的属性可赋任意变量(如：scope)，
-                最终找到的数据源会把值传给该变量。
+              绑定的数据源 userlist。slot-scope 的属性可赋任意变量(如：scope)，
+              最终找到的数据源会把值传给该变量。
         -->
         <template slot-scope="userlist">
           {{ userlist.row.create_time | fmtdate }}
