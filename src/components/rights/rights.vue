@@ -16,5 +16,40 @@
 </template>
 
 <script>
-export default {};
+export default {
+  created() {
+    this.getRightsList();
+  },
+  data() {
+    return {
+      rightsList: [],
+    };
+  },
+  methods: {
+    async getRightsList() {
+      // // 获取 token
+      // const AUTH_TOKEN = localStorage.getItem("token");
+
+      // //需要授权的API  必须在请求头中使用Authorization字段提供token令牌
+      // this.$http.defaults.headers.common["Authorization"] = AUTH_TOKEN;
+
+      // 已在自定义插件模块 axios 中，为请求头设置 Authorization 字段提供 token 令牌
+      const res = await this.$http.get(`rights/list`);
+      console.log(res);
+
+      // 对象解构赋值
+      const {
+        data,
+        meta: { msg, status },
+      } = res.data;
+
+      if (status == 200) {
+        this.rightsList = data;
+        this.$message.success(msg);
+      } else {
+        this.$message.error(msg);
+      }
+    },
+  },
+};
 </script>
