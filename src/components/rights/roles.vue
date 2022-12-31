@@ -167,6 +167,7 @@
         可使用 default-expand-all 属性完成展开所有树形节点的功能
       -->
       <el-tree
+        ref="rightsTree"
         :data="rightsTreeList"
         show-checkbox
         node-key="id"
@@ -177,9 +178,7 @@
       </el-tree>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisibleRights = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisibleRights = false"
-          >确 定</el-button
-        >
+        <el-button type="primary" @click="setRoleRights()">确 定</el-button>
       </div>
     </el-dialog>
   </el-card>
@@ -211,12 +210,65 @@ export default {
       // 默认展开的所有节点
       // expandedKeyArr: [],
       // 默认选中的节点
-      checkedKeysArr: [101, 104],
+      checkedKeysArr: [],
+      currRoleId: -1,
     };
   },
   methods: {
+    async setRoleRights() {
+      /* 
+        在 Vue 中获取 el-tree 组件的 DOM 元素的步骤：
+        1、在 el-tree 组件中设置 ref 属性值（例如：ref="rightsTree"）
+        2、通过 this.$refs.ref属性值.js方法名() 调用，
+         例如：
+          this.$refs.rightsTree.getCheckedKeys(); 
+          this.$refs.rightsTree.getHalfCheckedKeys();
+      */
+      
+      // element-ui 提供的 el-tree 组件获取全选 key 的数组方法 
+      // getCheckedKeys() ：获取目前被全选中的节点的 key 所组成的数组
+      let checkedKeysArr = this.$refs.rightsTree.getCheckedKeys();
+      // console.log(checkedKeysArr);
+      
+      // element-ui 提供的 el-tree 组件获取半选 key 的数组方法 
+      // getHalfCheckedKeys() ：获取目前被半选中的节点的 key 所组成的数组 
+      let halfCheckedKeysArr = this.$refs.rightsTree.getHalfCheckedKeys();
+      // console.log(halfCheckedKeysArr);
+
+      // 拼接数组，方式 1：使用 concat 方法
+      // let finalKeysArr = checkedKeysArr.concat(halfCheckedKeysArr);
+
+      // 拼接数组，方式 2：使用 ES6 提供的展开运算符
+      // 可存放 ...数组或者对象
+      let finalKeysArr = [...checkedKeysArr, ...halfCheckedKeysArr];
+      // console.log(finalKeysArr);
+
+      // rids：权限 ID 列表（字符串）
+      // 以 `,` 分割的权限 ID 列表（获取所有被选中、叶子节点的key和
+      // 半选中节点的key,包括 1，2，3级节点）
+      const res = await this.$http.post(`roles/${this.currRoleId}/rights`, {
+        rids: finalKeysArr.join(","),
+      });
+
+      // console.log(res);
+
+      if (res.data.meta.status == 200) {
+        // 提示更新权限成功
+        this.$message.success(res.data.meta.msg);
+
+        // 更新角色列表信息（视图） 
+        this.getRolesList();
+      } else {
+        // 提示更新权限失败
+        this.$message.error(res.data.meta.msg);
+      }
+
+      // 关闭“分配权限”对话框
+      this.dialogFormVisibleRights = false;
+    },
     // 显示“分配权限”对话框
     async showSetRoleRightsDia(role) {
+      this.currRoleId = role.id;
       // 获取树形结构的所有权限数据
       // type 值为 list 或 tree , list 列表显示权限, tree 树状显示权限
       const res = await this.$http.get(`rights/tree`);
@@ -230,7 +282,7 @@ export default {
 
       if (status == 200) {
         // 提示获取权限列表成功
-        this.$message.success(msg);
+        // this.$message.success(msg);
 
         // 树形结构的所有权限数据
         this.rightsTreeList = data;
@@ -266,7 +318,7 @@ export default {
         var tempCheckedArr = [];
         role.children.forEach((itemLevel1) => {
           // 把一级权限的 id 添加到数组中
-          // tempCheckedArr.push(itemLevel1.id);  
+          // tempCheckedArr.push(itemLevel1.id);
 
           itemLevel1.children.forEach((itemLevel2) => {
             // 把二级权限的 id 添加到数组中
