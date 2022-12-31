@@ -59,6 +59,7 @@ export default {
       // this.$http.defaults.headers.common["Authorization"] = AUTH_TOKEN;
 
       // 已在自定义插件模块 axios 中，为请求头设置 Authorization 字段提供 token 令牌
+      // type 值为 list 或 tree , list 列表显示权限, tree 树状显示权限
       const res = await this.$http.get(`rights/list`);
       // console.log(res);
 

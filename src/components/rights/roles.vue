@@ -101,7 +101,7 @@
           >
           </el-button>
           <el-button
-            @click="showSetUserRoleDia(scope.row)"
+            @click="showSetRoleRightsDia(scope.row)"
             size="medium"
             :plain="true"
             type="success"
@@ -145,6 +145,37 @@
         <el-button type="primary" @click="editRole()">确 定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 分配权限的对话框 -->
+    <el-dialog title="分配权限" :visible.sync="dialogFormVisibleRights">
+      <!-- 
+        Tree 树形结构控件： 
+        1、分别通过 default-expanded-keys 和 default-checked-keys 
+          设置默认展开和默认选中的节点。数据类型均为数组。
+        2、必须设置 node-key，其值为节点数据中的一个字段名，该字段在整棵树中是唯一的。
+          通常是数据源 data 中的 key 值（例如： id）
+        3、props 是配置选项：
+          label	指定节点标签为节点对象的某个属性值
+          children	指定子树为节点对象的某个属性值
+          disabled	指定节点选择框是否禁用为节点对象的某个属性值
+          isLeaf	指定节点是否为叶子节点，仅在指定了 lazy 属性的情况下生效
+        4、show-checkbox	节点是否可被选择（是否显示 CheckBox）
+      -->
+      <el-tree
+        :data="rightsTreeList"
+        show-checkbox
+        node-key="id"
+        :default-expanded-keys="expandedKeyArr"  
+        :props="defaultProps"
+      >
+      </el-tree>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisibleRights = false">取 消</el-button>
+        <el-button type="primary" @click="dialogFormVisibleRights = false"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -155,7 +186,7 @@ export default {
   },
   data() {
     return {
-      rolesList: [],
+      rolesList: [], // 所有角色的列表信息
       // 添加角色的表单数据
       roleForm: {
         roleName: "",
@@ -164,14 +195,67 @@ export default {
       // 添加对话框的属性
       dialogFormVisibleAdd: false,
       dialogFormVisibleEdit: false,
+      dialogFormVisibleRights: false,
+      rightsTreeList: [], // 树形结构的所有权限数据
+      // 树形结构的配置
+      defaultProps: {
+        children: "children", // 包含下级子节点的属性名（通常为包含子节点的容器数组名）
+        label: "authName", // 显示当前节点文本值的属性名
+      },
+      // 默认展开的所有节点
+      expandedKeyArr: [],
     };
   },
   methods: {
+    // 显示“分配权限”对话框
+    async showSetRoleRightsDia(role) {
+      // 获取树形结构的所有权限数据
+      // type 值为 list 或 tree , list 列表显示权限, tree 树状显示权限
+      const res = await this.$http.get(`rights/tree`);
+      console.log(res);
+
+      // 对象解构赋值
+      const {
+        data,
+        meta: { msg, status },
+      } = res.data;
+
+      if (status == 200) {
+        // 提示获取权限列表成功
+        this.$message.success(msg);
+
+        // 树形结构的所有权限数据
+        this.rightsTreeList = data;
+
+        // 把一级、二级、三级权限的所有 id 都存储到临时数组 tempArr 中
+        var tempArr = [];
+        this.rightsTreeList.forEach((itemLevel1) => {
+          tempArr.push(itemLevel1.id);
+
+          itemLevel1.children.forEach((itemLevel2) => {
+            tempArr.push(itemLevel2.id);
+
+            itemLevel2.children.forEach((itemLevel3) => {
+              tempArr.push(itemLevel3.id);
+            });
+          });
+        });
+
+        this.expandedKeyArr = tempArr;
+        // console.log(tempArr);
+      } else {
+        // 提示获取权限列表失败
+        this.$message.error(msg);
+      }
+
+      // 显示“分配权限”对话框
+      this.dialogFormVisibleRights = true;
+    },
     // 删除角色指定权限
     async deleteRights(role, rightId) {
       // role：当前角色对象，roleId：角色id，rightId：权限id
       const res = await this.$http.delete(`roles/${role.id}/rights/${rightId}`);
-      console.log(res);
+      // console.log(res);
 
       // 对象解构赋值
       const {
@@ -299,7 +383,7 @@ export default {
     async getRolesList() {
       // 已在自定义插件模块 axios 中，为请求头设置 Authorization 字段提供 token 令牌
       const res = await this.$http.get(`roles`);
-      console.log(res);
+      // console.log(res);
 
       // 对象解构赋值
       const {
