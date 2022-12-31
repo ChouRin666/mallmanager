@@ -24,10 +24,17 @@
           type: 'danger'  红色
         -->
         <template slot-scope="scope">
-          <el-row v-for="(itemLevel1, i) in scope.row.children" :key="i">
+          <el-row
+            v-for="(itemLevel1, i) in scope.row.children"
+            :key="i"
+            class="showRoleRow"
+          >
             <el-col :span="4">
               <!-- 展示一级权限 -->
-              <el-tag closable>
+              <el-tag
+                closable
+                @close="deleteRights(scope.row.id, itemLevel1.id)"
+              >
                 {{ itemLevel1.authName }}
               </el-tag>
               <!-- Icon 图标：直接通过设置类名为 el-icon-iconName 来使用即可 -->
@@ -37,7 +44,11 @@
               <el-row v-for="(itemLevel2, i) in itemLevel1.children" :key="i">
                 <el-col :span="4">
                   <!-- 展示二级权限 -->
-                  <el-tag closable type="success">
+                  <el-tag
+                    closable
+                    type="success"
+                    @close="deleteRights(scope.row.id, itemLevel2.id)"
+                  >
                     {{ itemLevel2.authName }}
                   </el-tag>
                   <!-- Icon 图标：直接通过设置类名为 el-icon-iconName 来使用即可 -->
@@ -46,6 +57,7 @@
                 <el-col :span="20">
                   <!-- 展示三级权限 -->
                   <el-tag
+                    @close="deleteRights(scope.row.id, itemLevel3.id)"
                     v-for="(itemLevel3, i) in itemLevel2.children"
                     :key="i"
                     closable
@@ -58,6 +70,11 @@
               </el-row>
             </el-col>
           </el-row>
+
+          <!-- 无权限的提示 -->
+          <div v-if="scope.row.children.length == 0" class="noRoleDiv">
+            未分配权限
+          </div>
         </template>
       </el-table-column>
       <!-- type="index"  设置该列的每个单元格的内容是从 1 开始的序号 -->
@@ -153,6 +170,29 @@ export default {
     };
   },
   methods: {
+    // 删除角色指定权限
+    async deleteRights(roleId, rightId) {
+      // roleId：角色id，rightId：权限id
+      const res = await this.$http.delete(`roles/${roleId}/rights/${rightId}`);
+      console.log(res);
+
+      // 对象解构赋值
+      const {
+        data,
+        meta: { msg, status },
+      } = res.data;
+
+      if (status == 200) {
+        // 提示取消权限成功
+        this.$message.success(msg);
+
+        // 更新角色和权限列表信息（视图）
+        this.getRolesList();
+      } else {
+        // 提示取消权限失败
+        this.$message.error(msg);
+      }
+    },
     // 编辑角色（发送请求）
     async editRole() {
       const res = await this.$http.put(
@@ -287,6 +327,15 @@ export default {
 
 .dataTable {
   margin-top: 20px;
+}
+
+.showRoleRow {
+  margin-left: 20px;
+}
+
+.noRoleDiv {
+  margin-left: 40px;
+  padding: 10px 0;
 }
 
 .roleTag {
