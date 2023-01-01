@@ -20,9 +20,8 @@
             icon="el-icon-search"
           ></el-button>
         </el-input>
-        <el-button type="success" plain 
-            @click="redirectToAddGoodsTemp()">
-            添加商品
+        <el-button type="success" plain @click="redirectToAddGoodsTemp()">
+          添加商品
         </el-button>
       </el-col>
     </el-row>
@@ -113,8 +112,8 @@ export default {
     showEditGoodsDia(goods) {},
     // 跳转到“添加商品”模板
     redirectToAddGoodsTemp() {
-        // 需要与路由模板 index.js 中定义的路由标识 name 保持一致（区分大小写）
-        this.$router.push({ name: 'goodsadd'});
+      // 需要与路由模板 index.js 中定义的路由标识 name 保持一致（区分大小写）
+      this.$router.push({ name: "goodsadd" });
     },
     // 显示“删除商品”消息盒子
     showDeleGoodsMsgBox(goodId) {
@@ -181,7 +180,7 @@ export default {
       const res = await this.$http.get(
         `goods?query=${this.query}&pagenum=${this.pagenum}&pagesize=${this.pagesize}`
       );
-      console.log(res);
+      // console.log(res);
 
       const {
         data: { total, goods },
