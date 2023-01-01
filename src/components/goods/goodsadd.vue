@@ -76,9 +76,8 @@
         </el-tab-pane>
 
         <!-- 商品参数 选项卡 -->
-        <el-tab-pane label="商品参数" name="2"
-          >商品参数
-          <!-- 在选择了商品分类的级联选择器后，商品参数才能被读取出来 -->
+        <el-tab-pane label="商品参数" name="2">
+          <!-- 在选择了商品分类的级联选择器后，动态商品参数才能被读取出来 -->
           <el-form-item
             :label="item1.attr_name"
             v-for="(item1, i) in dynamicParamsList"
@@ -89,7 +88,8 @@
                 需要为 el-checkbox-group 指定 v-model 的值，
                 否则会报以下错误信息：
                 Error in render: "TypeError: Cannot read property 'length' of undefined"
-             -->
+            -->
+            <!-- 复选框组 -->
             <el-checkbox-group v-model="item1.attr_vals">
               <el-checkbox
                 v-for="(item2, i) in item1.attr_vals"
@@ -102,7 +102,16 @@
         </el-tab-pane>
 
         <!-- 商品属性 选项卡 -->
-        <el-tab-pane label="商品属性" name="3">商品属性</el-tab-pane>
+        <el-tab-pane label="商品属性" name="3">
+          <!-- 在选择了商品分类的级联选择器后，静态商品属性才能被读取出来 -->
+          <el-form-item
+            v-for="(item, i) in staticParamsList"
+            :key="i"
+            :label="item.attr_name"
+          >
+            <el-input v-model="item.attr_vals"></el-input>
+          </el-form-item>
+        </el-tab-pane>
 
         <!-- 商品图片 选项卡 -->
         <el-tab-pane label="商品图片" name="4">商品图片</el-tab-pane>
@@ -148,6 +157,8 @@ export default {
       },
       // 动态商品参数列表
       dynamicParamsList: [],
+      // 静态商品属性列表
+      staticParamsList: [],
     };
   },
   methods: {
@@ -177,7 +188,7 @@ export default {
           const res = await this.$http.get(
             `categories/${this.selectedOptions[2]}/attributes?sel=many`
           );
-          console.log(res);
+          // console.log(res);
 
           const {
             data,
@@ -202,6 +213,33 @@ export default {
             });
 
             // console.log(this.dynamicParamsList);
+          } else {
+            this.$message.error(msg);
+          }
+        }
+      } // 如果 商品属性 选项卡被点击
+      else if (tab.name == "3") {
+        // 如果 级联选择器 没有选择 三级分类的商品信息
+        if (this.selectedOptions.length != 3) {
+          this.$message.warning("请先选择商品的三级分类！");
+        } else {
+          // 商品分类 ID: 存储在 三级分类参数数组 selectedOptions 中
+          // 获取静态 商品属性 列表
+          const res = await this.$http.get(
+            `categories/${this.selectedOptions[2]}/attributes?sel=only`
+          );
+          // console.log(res);
+
+          const {
+            data,
+            meta: { msg, status },
+          } = res.data;
+
+          if (status == 200) {
+            // this.$message.success(msg);
+            this.staticParamsList = data;
+
+            // console.log(this.staticParamsList);
           } else {
             this.$message.error(msg);
           }
