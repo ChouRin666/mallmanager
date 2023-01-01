@@ -7,7 +7,7 @@
     <!-- 添加角色按钮 -->
     <el-row class="addRoleRow">
       <el-col>
-        <el-button type="primary" @click="showAddRoleDia()">添加角色</el-button>
+        <el-button type="primary" plain @click="showAddRoleDia()">添加角色</el-button>
       </el-col>
     </el-row>
 

@@ -20,9 +20,10 @@
             icon="el-icon-search"
           ></el-button>
         </el-input>
-        <el-button type="success" @click="showAddGoodsDia()"
-          >添加商品</el-button
-        >
+        <el-button type="success" plain 
+            @click="redirectToAddGoodsTemp()">
+            添加商品
+        </el-button>
       </el-col>
     </el-row>
 
@@ -109,11 +110,12 @@ export default {
   },
   methods: {
     // 显示“编辑商品”模板
-    showEditGoodsDia(goods) {
-
+    showEditGoodsDia(goods) {},
+    // 跳转到“添加商品”模板
+    redirectToAddGoodsTemp() {
+        // 需要与路由模板 index.js 中定义的路由标识 name 保持一致（区分大小写）
+        this.$router.push({ name: 'goodsadd'});
     },
-    // 显示“添加商品”模板
-    showAddGoodsDia() {},
     // 显示“删除商品”消息盒子
     showDeleGoodsMsgBox(goodId) {
       this.$confirm("此操作将永久删除该商品, 是否继续?", "提示", {

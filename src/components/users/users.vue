@@ -27,7 +27,7 @@
             icon="el-icon-search"
           ></el-button>
         </el-input>
-        <el-button type="success" @click="showAddUserDia()">添加用户</el-button>
+        <el-button type="success" plain @click="showAddUserDia()">添加用户</el-button>
       </el-col>
     </el-row>
 
