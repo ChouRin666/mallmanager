@@ -68,7 +68,7 @@ export default {
 
       const res = await this.$http.post('login', this.formdata);
 
-      console.log(res);
+      // console.log(res);
 
       // 对象结构赋值
       const { 

@@ -112,13 +112,16 @@
 export default {
   // new Vue 之前自动触发
   beforeCreate() {
+    /* 
+    // 此段逻辑代码已被路由守卫执行，放到了路由配置页面 index.js 中
     // 获取 token
     const token = localStorage.getItem("token");
 
     // 如果没有 token，页面跳转到登录界面
     if (!token) {
       this.$router.push({ name: "login" });
-    }
+    } 
+    */
   },
   created() {
     // 初始化左侧菜单栏（由于每个用户权限不一样，所以展示的菜单也不同）
