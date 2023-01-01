@@ -422,7 +422,7 @@ export default {
       this.pagenum = val;
       this.getUserList();
     },
-    // 获取用户列表的请求
+    // 获取用户列表（发送请求）
     async getUserList() {
       //query  查询参数 可以为空
       //pagenum 当前页码   不能为空

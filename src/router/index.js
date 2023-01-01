@@ -8,6 +8,7 @@ import Home from "@/components/home/home";
 import Users from "@/components/users/users";
 import Rights from "@/components/rights/rights";
 import Roles from "@/components/rights/roles";
+import Goods from "@/components/goods/goodslist";
 
 // 单独引用 Message
 import { Message } from "element-ui";
@@ -41,6 +42,11 @@ const router = new Router({
           path: "/roles",
           name: "roles",
           component: Roles
+        },
+        {
+          path: "/goods",
+          name: "goods",
+          component: Goods
         }
       ]
     }
