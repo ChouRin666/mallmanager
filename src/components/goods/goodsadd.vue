@@ -63,7 +63,6 @@
                 props：配置选项（一般为对象，包含 label: "", value: "", children: ""）
                 expand-trigger="hover" 属性被弃用，在 props 中配置 expandTrigger="hover"
             -->
-            {{ selectedOptions }}
             <el-cascader
               v-model="selectedOptions"
               :options="categoryList"
@@ -71,7 +70,6 @@
               @change="handleChangeCategories()"
               clearable
             ></el-cascader>
-            <!-- <el-input v-model="goodsForm.goods_cat"></el-input> -->
           </el-form-item>
         </el-tab-pane>
 
@@ -89,8 +87,12 @@
                 否则会报以下错误信息：
                 Error in render: "TypeError: Cannot read property 'length' of undefined"
             -->
+
             <!-- 复选框组 -->
-            <el-checkbox-group v-model="item1.attr_vals">
+            <el-checkbox-group
+              @change="chkGroupChange(item1)"
+              v-model="item1.attr_vals"
+            >
               <el-checkbox
                 v-for="(item2, i) in item1.attr_vals"
                 :key="i"
@@ -135,7 +137,6 @@
               :on-preview="handlePicPreview"
               :on-remove="handlePicRemove"
               :on-success="handlePicSuccess"
-              :file-list="uploadFileList"
               list-type="picture"
             >
               <el-button size="small" type="primary">点击上传</el-button>
@@ -147,14 +148,47 @@
         </el-tab-pane>
 
         <!-- 商品内容 选项卡 -->
-        <el-tab-pane label="商品内容" name="5">商品内容</el-tab-pane>
+        <el-tab-pane label="商品内容" name="5">
+          <el-form-item>
+            <quill-editor
+              v-model="goodsForm.goods_introduce"
+              data-placeholder="请输入商品内容......"
+            >
+            </quill-editor>
+            <!-- <quill-editor
+              v-model="content"
+              ref="myQuillEditor"
+              :options="editorOption"
+              @blur="onEditorBlur($event)"
+              @focus="onEditorFocus($event)"
+              @ready="onEditorReady($event)"
+            >
+            </quill-editor> -->
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="addGoods()" type="primary" plain
+              >添加商品</el-button
+            >
+          </el-form-item>
+        </el-tab-pane>
       </el-tabs>
     </el-form>
   </el-card>
 </template>
 
 <script>
+// 引入 第三方插件 富文本编辑器 vue-quill-editor 所需的样式
+import "quill/dist/quill.core.css";
+import "quill/dist/quill.snow.css";
+import "quill/dist/quill.bubble.css";
+
+// 引入 第三方插件 富文本编辑器 vue-quill-editor 的包文件
+import { quillEditor } from "vue-quill-editor";
+
 export default {
+  components: {
+    quillEditor, // 局部挂载 第三方插件 富文本编辑器 vue-quill-editor 的组件
+  },
   created() {
     // 初始化级联选择器
     this.getGoodsCategories();
@@ -173,11 +207,11 @@ export default {
         goods_number: "", // 数量
         goods_weight: "", // 重量
         goods_introduce: "", // 介绍
-        pics: "", // 上传的图片临时路径（对象）
-        attrs: "", // 商品的参数（数组），包含 '动态参数' 和 '静态属性'
+        pics: [], // 上传的图片数组，包含临时图片路径（对象）
+        attrs: [], // 商品的参数（数组），包含 '动态参数' 和 '静态属性'
       },
       // 级联选择器的属性
-      selectedOptions: [],
+      selectedOptions: [1, 3, 6],
       categoryList: [],
       defaultProps: {
         expandTrigger: "hover",
@@ -189,8 +223,6 @@ export default {
       dynamicParamsList: [],
       // 静态商品属性列表
       staticParamsList: [],
-      // 上传图片的文件列表
-      uploadFileList: [],
       // 设置上传图片的请求头部，须携带 token 令牌
       headers: {
         Authorization: localStorage.getItem("token"),
@@ -198,28 +230,244 @@ export default {
     };
   },
   methods: {
+    // 添加商品（发送请求）
+    async addGoods() {
+      /*     
+        goodsForm 中待处理属性
+
+        1、goods_cat
+          以','分割的分类列表：
+          把级联选择器 selectedOptions 的数组值转为为以','分割的字符串，格式如下：
+          goods_cat: "1,3,6"
+       
+        2、pics
+          上传的图片数组，包含临时图片路径（对象），格式如下：
+          pics: [
+            { "pic": "/tmp_uploads/30f08d52c551ecb447277eae232304b8" }
+          ]  
+          已在 handlePicSuccess 和 handlePicRemove 事件中处理好 goodsForm.pics 数组。
+
+        3、attrs
+          商品的参数（数组），包含 '动态参数' 和 '静态属性'，格式如下：
+          attrs: [
+            {
+              "attr_id":15,
+              "attr_value":"ddd"
+            },
+            {
+              "attr_id":15,
+              "attr_value":"eee"
+            }
+          ]
+      */
+      this.goodsForm.goods_cat = this.selectedOptions.join(",");
+
+      const tempArr = [];
+      // 存储 静态属性 的值到 goodsForm.attrs 数组
+      this.staticParamsList.forEach((item) => {
+        tempArr.push({
+          attr_id: item.attr_id,
+          attr_value: item.attr_vals,
+        });
+      });
+
+      // 在 Checkbox-group 触发 @change 事件时，
+      // 已向 goodsForm.attrs 数组设置了 动态参数 的值
+      this.goodsForm.attrs = [...this.goodsForm.attrs, ...tempArr];
+
+      // 返回 Promise 对象
+      const res = await this.$http.post(`goods`, this.goodsForm);
+
+      // console.log(res);
+
+      const {
+        data,
+        meta: { msg, status },
+      } = res.data;
+
+      if (status == 201) {
+        this.$message.success(msg);
+
+        // 跳转到 商品列表 页面
+        // 需要与路由模板 index.js 中定义的路由标识 name 保持一致（区分大小写）
+        this.$router.push({ name: "goods" });
+      } else {
+        this.$message.error(msg);
+      }
+    },
+    // 当 Checkbox-group 绑定值变化时触发的 @change 事件
+    chkGroupChange(chkGroup) {
+      // console.log(chkGroup);
+
+      /* 
+        attrs
+        商品的参数（数组），包含 '动态参数' 和 '静态属性'，格式如下：
+        attrs: [
+          {
+            "attr_id":15,
+            "attr_value":"ddd"
+          },
+          {
+            "attr_id":15,
+            "attr_value":"eee"
+          }
+        ] 
+      */
+
+      /* 
+
+      // 存储 动态参数 的值到 goodsForm.attrs 数组，方式 1：
+      // 使用 2 个临时数组 tempAttrVals1 和 tempAttrVals2 。 
+
+      // 触发 @change 事件的 Checkbox-group
+      // 把当前 Checkbox-group 选中的值存储到临时数组 tempAttrVals1 中
+      const tempAttrVals1 = [];
+      chkGroup.attr_vals.forEach((item) => {
+        tempAttrVals1.push({
+          attr_id: chkGroup.attr_id,
+          attr_value: item,
+        });
+      });
+
+      // 没有触发 @change 事件的 Checkbox-group
+      // 把 goodsForm.attrs 数组中其他 Checkbox-group 的值
+      // 存储到临时数组 tempAttrVals2 中（不属于 chkGroup.attr_id 的值）
+      const tempAttrVals2 = [];
+      this.goodsForm.attrs.forEach((item) => {
+        if (item.attr_id != chkGroup.attr_id) {
+          tempAttrVals2.push({
+            attr_id: item.attr_id,
+            attr_value: item.attr_value,
+          });
+        }
+      });
+
+      // 清空 goodsForm.attrs 数组的所有值
+      this.goodsForm.attrs = [];
+
+      // 把所有 Checkbox-group 选中的最新值传递给 goodsForm.attrs 数组
+
+      // 拼接数组，方式 1：使用 concat() 方法
+      // this.goodsForm.attrs = tempAttrVals1.concat(tempAttrVals2);
+
+      // 拼接数组，方式 2：使用 ES 7 提供的展开运算符 [...数组或对象, ...数组或对象]
+      this.goodsForm.attrs = [...tempAttrVals1, ...tempAttrVals2]; 
+      
+      */
+
+      /* ----------------------------------------------------------------- */
+
+      // 存储 动态参数 的值到 goodsForm.attrs 数组，方式 2：
+      // 使用 1 个临时数组 tempAttrVals 。
+
+      // 触发 @change 事件的 Checkbox-group
+      // 把当前 Checkbox-group 选中的值存储到临时数组 tempAttrVals 中
+      const tempAttrVals = [];
+      chkGroup.attr_vals.forEach((item) => {
+        tempAttrVals.push({
+          attr_id: chkGroup.attr_id,
+          attr_value: item,
+        });
+      });
+
+      // 没有触发 @change 事件的 Checkbox-group
+      // 把 goodsForm.attrs 数组中其他 Checkbox-group 的值
+      // 存储到临时数组 tempAttrVals 中（不属于 chkGroup.attr_id 的值）
+      this.goodsForm.attrs.forEach((item) => {
+        if (item.attr_id != chkGroup.attr_id) {
+          tempAttrVals.push({
+            attr_id: item.attr_id,
+            attr_value: item.attr_value,
+          });
+        }
+      });
+
+      // 清空 goodsForm.attrs 数组的所有值
+      this.goodsForm.attrs = [];
+
+      // 把所有 Checkbox-group 选中的最新值传递给 goodsForm.attrs 数组
+      this.goodsForm.attrs = tempAttrVals;
+
+      // console.log(this.goodsForm.attrs);
+    },
     // 处理上传图片时的 preview 事件
     handlePicPreview(file) {
-      console.log("预览");
-      console.log(file);
+      // console.log("预览");
+      // console.log(file);
     },
     // 处理上传图片时的 remove 事件
     handlePicRemove(file, fileList) {
-      console.log("移除");
-      console.log(file);
-      //   file.response.data.tmp_path;
-      //   tmp_path: "tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
-      //   file.response.data.url;
-      //   url: "http://127.0.0.1:8888/tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
+      // console.log("移除");
+      // console.log(file);
+
+      /* 
+        goodsForm.pics 数组的格式如下：
+        [{ pic: tmp_path1 }, { pic: tmp_path2 }, { pic: tmp_path3 }]
+
+        回调参数 file 返回的 file.response.data.tmp_path 值如下：
+        tmp_path: "tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
+
+        找到待删除图片在数组中的索引
+        方式 1：
+          使用 for 循环迭代器遍历数组 goodsForm.pics，
+          匹配 tmp_path 一致的值，记录其在数组中的索引。
+
+        方式 2：
+          使用 findIndex() 方法遍历数组 goodsForm.pics，
+          匹配 tmp_path 一致的值，返回符合条件元素在数组中的索引。
+      */
+
+      /* 
+        方式 1：
+        使用 for 循环，找到待删除图片在数组中的索引 
+      */
+
+      /* 
+        // 待删除图片的临时路径
+        const delTmpPath = file.response.data.tmp_path;
+
+        let delIdx = -1;
+
+        for (
+          let i = 0, arrLength = this.goodsForm.pics.length;
+          i < arrLength;
+          i++
+        ) {
+          if (this.goodsForm.pics[i].pic == delTmpPath) {
+            delIdx = i;
+          }
+        }
+        
+        this.goodsForm.pics.splice(delIdx, 1);
+      */
+
+      /* 
+        方式 2：
+        使用 findIndex() 方法，找到待删除图片在数组中的索引 
+      */
+
+      // 待删除图片的临时路径
+      const delTmpPath = file.response.data.tmp_path;
+
+      // findIndex 遍历 数组，把符合条件的元素的索引进行返回
+      let delIdx = this.goodsForm.pics.findIndex((item) => {
+        return item.pic == delTmpPath;
+      });
+
+      this.goodsForm.pics.splice(delIdx, 1);
     },
     // 处理上传图片时的 success 事件
     handlePicSuccess(response, file, fileList) {
-      console.log("成功");
-      console.log(file);
-      //   file.response.data.tmp_path;
-      //   tmp_path: "tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
-      //   file.response.data.url;
-      //   url: "http://127.0.0.1:8888/tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
+      // console.log("成功");
+      // console.log(file);
+
+      /* 
+        回调参数 file 返回的 file.response.data.tmp_path 值如下：
+        tmp_path: "tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
+      */
+
+      // 向 goodsForm.pics 数组中添加临时图片路径（对象）
+      this.goodsForm.pics.push({ pic: file.response.data.tmp_path });
     },
     // tab 选项卡被点击时触发
     async handleTabClick(tab) {
@@ -345,5 +593,10 @@ export default {
   margin-top: 30px;
   height: 600px;
   overflow: auto;
+}
+
+/* 富文本编辑器自带样式名 */
+.ql-editor {
+  min-height: 300px;
 }
 </style>
