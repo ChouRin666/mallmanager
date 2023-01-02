@@ -114,7 +114,37 @@
         </el-tab-pane>
 
         <!-- 商品图片 选项卡 -->
-        <el-tab-pane label="商品图片" name="4">商品图片</el-tab-pane>
+        <el-tab-pane label="商品图片" name="4">
+          <el-form-item>
+            <!-- 
+                此处上传图片的 action 需要填写全路径，
+                因为并不是通过调用 axios 向服务器发送请求。
+
+                不能像之前进行数据的 CRUD 操作时，发送 axios 请求时只写后半部分的请求路径，
+                因为已经在封装好的 $http 方法中设置了 axios 的 baseURL。
+
+                headers：设置上传的请求头部
+                要想上传成功，需要设置 header，以便发送的请求携带 token 令牌。
+            -->
+
+            <!-- 上传图片 el-upload  -->
+            <el-upload
+              class="upload-demo"
+              action="http://127.0.0.1:8888/api/private/v1/upload"
+              :headers="headers"
+              :on-preview="handlePicPreview"
+              :on-remove="handlePicRemove"
+              :on-success="handlePicSuccess"
+              :file-list="uploadFileList"
+              list-type="picture"
+            >
+              <el-button size="small" type="primary">点击上传</el-button>
+              <div slot="tip" class="el-upload__tip">
+                只能上传jpg/png文件，且不超过500kb
+              </div>
+            </el-upload>
+          </el-form-item>
+        </el-tab-pane>
 
         <!-- 商品内容 选项卡 -->
         <el-tab-pane label="商品内容" name="5">商品内容</el-tab-pane>
@@ -159,9 +189,38 @@ export default {
       dynamicParamsList: [],
       // 静态商品属性列表
       staticParamsList: [],
+      // 上传图片的文件列表
+      uploadFileList: [],
+      // 设置上传图片的请求头部，须携带 token 令牌
+      headers: {
+        Authorization: localStorage.getItem("token"),
+      },
     };
   },
   methods: {
+    // 处理上传图片时的 preview 事件
+    handlePicPreview(file) {
+      console.log("预览");
+      console.log(file);
+    },
+    // 处理上传图片时的 remove 事件
+    handlePicRemove(file, fileList) {
+      console.log("移除");
+      console.log(file);
+      //   file.response.data.tmp_path;
+      //   tmp_path: "tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
+      //   file.response.data.url;
+      //   url: "http://127.0.0.1:8888/tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
+    },
+    // 处理上传图片时的 success 事件
+    handlePicSuccess(response, file, fileList) {
+      console.log("成功");
+      console.log(file);
+      //   file.response.data.tmp_path;
+      //   tmp_path: "tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
+      //   file.response.data.url;
+      //   url: "http://127.0.0.1:8888/tmp_uploads/91c463719071f83e50e207ece780be37.jpeg";
+    },
     // tab 选项卡被点击时触发
     async handleTabClick(tab) {
       // 回调参数 tab：被选中的 el-tab-pane 标签 (tab 实例)
