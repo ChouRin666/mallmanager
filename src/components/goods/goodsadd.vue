@@ -211,7 +211,7 @@ export default {
         attrs: [], // 商品的参数（数组），包含 '动态参数' 和 '静态属性'
       },
       // 级联选择器的属性
-      selectedOptions: [1, 3, 6],
+      selectedOptions: [],
       categoryList: [],
       defaultProps: {
         expandTrigger: "hover",

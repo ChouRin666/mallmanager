@@ -58,7 +58,7 @@
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button
-            @click="showEditGoodsDia(scope.row)"
+            @click="redirectToEditGoodsTemp(scope.row.goods_id)"
             size="medium"
             :plain="true"
             type="primary"
@@ -108,8 +108,21 @@ export default {
     };
   },
   methods: {
-    // 显示“编辑商品”模板
-    showEditGoodsDia(goods) {},
+    // 跳转到“编辑商品”模板
+    redirectToEditGoodsTemp(goodsId) {
+      // console.log(goodsId);
+
+      // 需要与路由模板 index.js 中定义的路由标识 name 保持一致（区分大小写）
+      // 不在 index.js 路由页配置参数来接收（url中不显示参数，刷新页面会丢失传递过来的参数）
+
+      // 通过 name 跳转，携带参数
+      this.$router.push({
+        name: "goodsedit",
+        params: {
+          goodsId: goodsId,
+        },
+      });
+    },
     // 跳转到“添加商品”模板
     redirectToAddGoodsTemp() {
       // 需要与路由模板 index.js 中定义的路由标识 name 保持一致（区分大小写）

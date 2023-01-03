@@ -10,6 +10,7 @@ import Rights from "@/components/rights/rights";
 import Roles from "@/components/rights/roles";
 import GoodsList from "@/components/goods/goodslist";
 import GoodsAdd from "@/components/goods/goodsadd";
+import GoodsEdit from "@/components/goods/goodsedit";
 
 // 单独引用 Message
 import { Message } from "element-ui";
@@ -30,29 +31,34 @@ const router = new Router({
       component: Home,
       children: [
         {
-          path: "/users",  // 二级目录，从数据库查询出来，不可随便写
+          path: "/users", // 二级目录，从数据库查询出来，不可随便写
           name: "users",
           component: Users
         },
         {
-          path: "/rights",  // 二级目录，从数据库查询出来，不可随便写
+          path: "/rights", // 二级目录，从数据库查询出来，不可随便写
           name: "rights",
           component: Rights
         },
         {
-          path: "/roles",  // 二级目录，从数据库查询出来，不可随便写
+          path: "/roles", // 二级目录，从数据库查询出来，不可随便写
           name: "roles",
           component: Roles
         },
         {
-          path: "/goods",  // 二级目录，从数据库查询出来，不可随便写
+          path: "/goods", // 二级目录，从数据库查询出来，不可随便写
           name: "goods",
           component: GoodsList
         },
         {
-          path: "/goodsadd",  // 三级目录，可自定义
+          path: "/goodsadd", // 三级目录，可自定义
           name: "goodsadd",
           component: GoodsAdd
+        },
+        {
+          path: "/goodsedit", // 三级目录，可自定义
+          name: "goodsedit",
+          component: GoodsEdit
         }
       ]
     }
