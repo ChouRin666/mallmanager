@@ -38,7 +38,7 @@
     <el-tabs v-model="activeTabIdx" type="card" @tab-click="handleTabClick">
       <el-tab-pane label="动态参数" name="1">
         <!-- 添加按钮：设置动态参数 -->
-        <el-button @click="addGoods()" type="danger" plain
+        <el-button @click="showAddDynamicParamsDia()" type="danger" plain
           >设置动态参数</el-button
         >
 
@@ -55,16 +55,6 @@
                 type: 'warning'  黄色
                 type: 'danger'  红色
                 -->
-
-              <!-- <el-tag
-                @close="deleteDynamicAttr()"
-                v-for="(item, i) in scope.row.attr_vals"
-                :key="i"
-                class="dynamicParamsTag"
-                type="success"
-                closable
-                >{{ item }}</el-tag
-              > -->
 
               <el-tag
                 v-for="(item, i) in scope.row.attr_vals"
@@ -109,7 +99,7 @@
               >
               </el-button>
               <el-button
-                @click="showDeleDynamicParamsMsgBox(scope.row.id)"
+                @click="showDeleDynamicParamsMsgBox(scope.row)"
                 size="medium"
                 :plain="true"
                 type="danger"
@@ -123,6 +113,41 @@
       </el-tab-pane>
       <el-tab-pane label="静态属性" name="2">静态属性</el-tab-pane>
     </el-tabs>
+
+    <!-- 对话框 -->
+    <!-- 添加分类参数的对话框 -->
+    <el-dialog title="添加分类参数" :visible.sync="dialogFormVisibleAdd">
+      <el-form :model="tagForm" label-position="top">
+        <el-form-item label="参数名称" required label-width="100px">
+          <el-input v-model="tagForm.attr_name" autocomplete="off"></el-input>
+        </el-form-item>
+
+        <el-form-item label="值" label-width="100px">
+          <el-input v-model="tagForm.attr_vals" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisibleAdd = false">取 消</el-button>
+        <el-button type="primary" @click="addDynamicParams()">确 定</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 编辑分类参数的对话框 -->
+    <el-dialog title="编辑分类参数" :visible.sync="dialogFormVisibleEdit">
+      <el-form :model="tagForm" label-position="top">
+        <el-form-item label="参数名称" required label-width="100px">
+          <el-input v-model="tagForm.attr_name" autocomplete="off"></el-input>
+        </el-form-item>
+
+        <el-form-item label="值" label-width="100px">
+          <el-input v-model="tagForm.attr_vals" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisibleEdit = false">取 消</el-button>
+        <el-button type="primary" @click="editDynamicParams()">确 定</el-button>
+      </div>
+    </el-dialog>
   </el-card>
 </template>  
 
@@ -157,6 +182,12 @@ export default {
         attr_sel: "",
         attr_vals: "",
       },
+      // 对话框 参数
+      dialogFormVisibleAdd: false,
+      dialogFormVisibleEdit: false,
+      // 编辑分类参数 对话框参数
+      currCatId: -1,
+      currAttrId: -1,
     };
   },
   methods: {
@@ -209,6 +240,8 @@ export default {
     },
     // tag 标签输入内容后， 回车 或 失去焦点 时触发
     async handleInputConfirm(dynamicParams) {
+      console.log("handleInputConfirm");
+      console.log(dynamicParams);
       let inputValue = this.inputValue.trim();
       if (inputValue) {
         const attrValList = dynamicParams.attr_vals;
@@ -258,12 +291,155 @@ export default {
       this.inputVisible = false;
       this.inputValue = "";
     },
-    // // 删除动态参数
-    // deleteDynamicAttr() {},
-    // 编辑第三级分类
-    showEditDynamicParamsDia(attr) {},
-    // 删除第三级分类
-    showDeleDynamicParamsMsgBox(attr) {},
+    // 编辑 分类参数 (发送请求)
+    async editDynamicParams() {
+      let inputAttrVals = this.tagForm.attr_vals.trim();
+      if (inputAttrVals != "" || inputAttrVals.length != 0) {
+        // 把 中文逗号 替换成 英文逗号
+
+        // 默认替换 attr_vals 中的第一个中文逗号
+        // this.tagForm.attr_vals = inputAttrVals.replace("，", ",");
+
+        // 全局替换 attr_vals 中的所有中文逗号
+        this.tagForm.attr_vals = inputAttrVals.replace(/\，/g, ",");
+      }
+
+      const res = await this.$http.put(
+        `categories/${this.currCatId}/attributes/${this.currAttrId}`,
+        this.tagForm
+      );
+
+      // console.log(res);
+
+      const {
+        data,
+        meta: { msg, status },
+      } = res.data;
+
+      if (status == 200) {
+        this.$message.success(msg);
+
+        // 修改完成 动态参数 后，清空表单请求体
+        this.tagForm = {};
+
+        // 刷新视图
+        this.changeCateParams();
+      } else {
+        this.$message.error(msg);
+      }
+
+      // 隐藏 编辑分类参数 对话框
+      this.dialogFormVisibleEdit = false;
+    },
+    // 显示 编辑分类参数 对话框
+    async showEditDynamicParamsDia(dynamicParams) {
+      this.currCatId = dynamicParams.cat_id;
+      this.currAttrId = dynamicParams.attr_id;
+      let tempAttrVals = "";
+      if (dynamicParams.attr_vals.length != 0) {
+        tempAttrVals = dynamicParams.attr_vals.join(","); // 把数组转换为字符串
+      }
+
+      this.tagForm = {
+        attr_name: dynamicParams.attr_name,
+        attr_sel: dynamicParams.attr_sel,
+        attr_vals: tempAttrVals,
+      };
+
+      // 显示 编辑分类参数 对话框
+      this.dialogFormVisibleEdit = true;
+    },
+    // 删除 分类参数（发送请求）
+    async showDeleDynamicParamsMsgBox(dynamicParams) {
+      this.$confirm("此操作将永久删除该分类参数, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(async () => {
+          // 删除 分类参数 (发送请求)
+          const res = await this.$http.delete(
+            `categories/${dynamicParams.cat_id}/attributes/${dynamicParams.attr_id}`
+          );
+          // console.log(res);
+
+          if (res.data.meta.status == 200) {
+            // 刷新视图
+            this.changeCateParams();
+
+            // 提示删除 分类参数 成功
+            this.$message({
+              type: "success",
+              message: res.data.meta.msg,
+            });
+          } else {
+            // 提示删除 分类参数 失败
+            this.$message({
+              type: "error",
+              message: res.data.meta.msg,
+            });
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    // 添加分类参数 (发送请求)
+    async addDynamicParams() {
+      let inputAttrVals = this.tagForm.attr_vals.trim();
+      if (inputAttrVals != "" || inputAttrVals.length != 0) {
+        // 把 中文逗号 替换成 英文逗号
+
+        // 默认替换 attr_vals 中的第一个中文逗号
+        // this.tagForm.attr_vals = inputAttrVals.replace("，", ",");
+
+        // 全局替换 attr_vals 中的所有中文逗号
+        this.tagForm.attr_vals = inputAttrVals.replace(/\，/g, ",");
+      }
+      this.tagForm.attr_sel = "many";
+
+      // 添加动态参数 (发送请求)
+      const res = await this.$http.post(
+        `categories/${this.selectedOptions[2]}/attributes`,
+        this.tagForm
+      );
+
+      // console.log(res);
+
+      const {
+        data,
+        meta: { msg, status },
+      } = res.data;
+
+      if (status == 201) {
+        this.$message.success(msg);
+
+        // 添加完成 动态参数 后，清空表单请求体
+        this.tagForm = {};
+
+        // 刷新视图
+        this.changeCateParams();
+      } else {
+        this.$message.error(msg);
+      }
+
+      // 隐藏 添加分类参数 对话框
+      this.dialogFormVisibleAdd = false;
+    },
+    showAddDynamicParamsDia() {
+      if (this.selectedOptions.length != 3) {
+        this.$message.warning("请先选择商品的三级分类！");
+      } else {
+        // 添加 动态参数 前，清空表单请求体
+        this.tagForm = {};
+
+        // 显示 添加分类参数 对话框
+        this.dialogFormVisibleAdd = true;
+      }
+    },
     // tab 选项卡 触发 @tab-click 事件
     handleTabClick(tab) {
       // 回调参数 tab：被选中的 el-tab-pane 标签 (tab 实例)
@@ -319,6 +495,7 @@ export default {
             }
           });
 
+          console.log("this.dynamicParamsList");
           console.log(this.dynamicParamsList);
         } else {
           this.$message.error(msg);
