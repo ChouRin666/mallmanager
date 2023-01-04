@@ -34,6 +34,8 @@ Vue.use(MyHttpServer);
 
 // 全局过滤器，处理时间格式
 Vue.filter('fmtdate', (v) => {
+  // 把 10位数的日期 转换为 13位数的日期
+  v = v * 1000;
   return moment(v).format('YYYY-MM-DD');
 });
 

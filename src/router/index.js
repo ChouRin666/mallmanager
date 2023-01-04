@@ -11,6 +11,7 @@ import Roles from "@/components/rights/roles";
 import GoodsList from "@/components/goods/goodslist";
 import GoodsAdd from "@/components/goods/goodsadd";
 import GoodsEdit from "@/components/goods/goodsedit";
+import CateParams from "@/components/goods/cateparams";
 
 // 单独引用 Message
 import { Message } from "element-ui";
@@ -59,6 +60,11 @@ const router = new Router({
           path: "/goodsedit", // 三级目录，可自定义
           name: "goodsedit",
           component: GoodsEdit
+        },
+        {
+          path: "/params", // 二级目录，从数据库查询出来，不可随便写
+          name: "cateparams",
+          component: CateParams
         }
       ]
     }
