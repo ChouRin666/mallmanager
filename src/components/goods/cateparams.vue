@@ -83,8 +83,8 @@
                 v-model="inputValue"
                 ref="saveTagInput"
                 size="medium"
-                @keyup.enter.native="handleInputConfirm(scope.row.attr_vals)"
-                @blur="handleInputConfirm(scope.row.attr_vals)"
+                @keyup.enter.native="handleInputConfirm(scope.row)"
+                @blur="handleInputConfirm(scope.row)"
               >
               </el-input>
               <el-button
@@ -151,6 +151,12 @@ export default {
       // tag 标签的属性
       inputVisible: false,
       inputValue: "",
+      // 添加 或 删除 tag 标签，提交方法时的请求体
+      tagForm: {
+        attr_name: "",
+        attr_sel: "",
+        attr_vals: "",
+      },
     };
   },
   methods: {
@@ -159,25 +165,26 @@ export default {
       const attrValList = dynamicParams.attr_vals;
       attrValList.splice(attrValList.indexOf(tag), 1);
 
-      const tagForm = {
+      // put 方法，参数请求体
+      this.tagForm = {
         attr_name: dynamicParams.attr_name,
         attr_sel: dynamicParams.attr_sel,
-        attr_vals: attrValList.join(","),  // 把数组转换为字符串
+        attr_vals: attrValList.join(","), // 把数组转换为字符串
       };
 
       // 删除 tag （发送请求），以下方式 2 选 1
       // cat_id 可以传入 dynamicParams.cat_id ，也可以传入 this.selectedOptions[2]
 
-      // 方式 1： 
+      // 方式 1：
       // const res = await this.$http.put(
       //   `categories/${dynamicParams.cat_id}/attributes/${dynamicParams.attr_id}`,
-      //   tagForm
+      //   this.tagForm
       // );
 
       // 方式 2：
       const res = await this.$http.put(
         `categories/${this.selectedOptions[2]}/attributes/${dynamicParams.attr_id}`,
-        tagForm
+        this.tagForm
       );
 
       // console.log(res);
@@ -201,10 +208,52 @@ export default {
       });
     },
     // tag 标签输入内容后， 回车 或 失去焦点 时触发
-    handleInputConfirm(dynamicTags) {
-      let inputValue = this.inputValue;
+    async handleInputConfirm(dynamicParams) {
+      let inputValue = this.inputValue.trim();
       if (inputValue) {
-        dynamicTags.push(inputValue);
+        const attrValList = dynamicParams.attr_vals;
+        // 如果添加的 tag 在数组中已存在
+        if (attrValList.indexOf(inputValue) != -1) {
+          this.$message.error("当前分类下的该参数已存在！");
+          // return;
+        } else {
+          attrValList.push(inputValue);
+
+          // put 方法，参数请求体
+          this.tagForm = {
+            attr_name: dynamicParams.attr_name,
+            attr_sel: dynamicParams.attr_sel,
+            attr_vals: attrValList.join(","), // 把数组转换为字符串
+          };
+
+          // 添加 tag （发送请求），以下方式 2 选 1
+          // cat_id 可以传入 dynamicParams.cat_id ，也可以传入 this.selectedOptions[2]
+
+          // 方式 1：
+          const res = await this.$http.put(
+            `categories/${dynamicParams.cat_id}/attributes/${dynamicParams.attr_id}`,
+            this.tagForm
+          );
+
+          // 方式 2：
+          /* const res = await this.$http.put(
+            `categories/${this.selectedOptions[2]}/attributes/${dynamicParams.attr_id}`,
+            this.tagForm
+          ); */
+
+          // console.log(res);
+
+          const {
+            data,
+            meta: { msg, status },
+          } = res.data;
+
+          if (status == 200) {
+            this.$message.success(msg);
+          } else {
+            this.$message.error(msg);
+          }
+        }
       }
       this.inputVisible = false;
       this.inputValue = "";
