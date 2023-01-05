@@ -44,7 +44,7 @@
 
         <!-- 表格 -->
         <el-table :data="dynamicParamsList" style="width: 100%">
-          <el-table-column type="expand" label="#">
+          <el-table-column type="expand" label="#" width="100px">
             <template slot-scope="scope">
               <!-- 
                 页面布局如果是行列问题，考虑使用 for 循环嵌套输出 el-tag 。
@@ -86,7 +86,7 @@
               >
             </template>
           </el-table-column>
-          <el-table-column label="属性名称" prop="attr_name"> </el-table-column>
+          <el-table-column label="属性名称" prop="attr_name" width="400px"> </el-table-column>
           <el-table-column label="操作">
             <template slot-scope="scope">
               <el-button
@@ -119,7 +119,7 @@
 
         <!-- 表格 -->
         <el-table :data="staticParamsList" style="width: 100%">
-          <el-table-column type="index" label="#" width="60px">
+          <el-table-column type="index" label="#" width="100px">
           </el-table-column>
           <el-table-column label="属性名称" prop="attr_name" width="400px">
           </el-table-column>

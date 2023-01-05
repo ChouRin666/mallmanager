@@ -12,6 +12,7 @@ import GoodsList from "@/components/goods/goodslist";
 import GoodsAdd from "@/components/goods/goodsadd";
 import GoodsEdit from "@/components/goods/goodsedit";
 import CateParams from "@/components/goods/cateparams";
+import GoodsCate from "@/components/goods/goodscate";
 
 // 单独引用 Message
 import { Message } from "element-ui";
@@ -33,38 +34,43 @@ const router = new Router({
       children: [
         {
           path: "/users", // 二级目录，从数据库查询出来，不可随便写
-          name: "users",
+          name: "users",  // 用户管理 > 用户列表（自定义 name 值）
           component: Users
         },
         {
           path: "/rights", // 二级目录，从数据库查询出来，不可随便写
-          name: "rights",
+          name: "rights",  // 权限管理 > 权限列表（自定义 name 值）
           component: Rights
         },
         {
           path: "/roles", // 二级目录，从数据库查询出来，不可随便写
-          name: "roles",
+          name: "roles",  // 权限管理 > 角色列表（自定义 name 值）
           component: Roles
         },
         {
           path: "/goods", // 二级目录，从数据库查询出来，不可随便写
-          name: "goods",
+          name: "goods",  // 商品管理 > 商品列表（自定义 name 值）
           component: GoodsList
         },
         {
           path: "/goodsadd", // 三级目录，可自定义
-          name: "goodsadd",
+          name: "goodsadd",  // 商品管理 > 商品列表（添加商品）（自定义 name 值）
           component: GoodsAdd
         },
         {
           path: "/goodsedit", // 三级目录，可自定义
-          name: "goodsedit",
+          name: "goodsedit",  // 商品管理 > 商品列表（编辑商品）（自定义 name 值）
           component: GoodsEdit
         },
         {
           path: "/params", // 二级目录，从数据库查询出来，不可随便写
-          name: "cateparams",
+          name: "cateparams",  // 商品管理 > 分类参数（自定义 name 值）
           component: CateParams
+        },
+        {
+          path: "/categories", // 二级目录，从数据库查询出来，不可随便写
+          name: "goodscate",  // 商品管理 > 商品分类（自定义 name 值）
+          component: GoodsCate
         }
       ]
     }
