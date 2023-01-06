@@ -94,7 +94,6 @@
         <el-form-item label="分类名称" required label-width="100px">
           <el-input v-model="cateForm.cat_name" autocomplete="off"></el-input>
         </el-form-item>
-        {{ selectedOptions }}
         <el-form-item label="分类" label-width="100px">
           <!-- 
                 级联选择器 el-cascader：
@@ -127,7 +126,6 @@
         <el-form-item label="分类名称" required label-width="100px">
           <el-input v-model="cateForm.cat_name" autocomplete="off"></el-input>
         </el-form-item>
-        {{ selectedOptions }}
         <el-form-item label="分类" label-width="100px">
           <!-- 
                 级联选择器 el-cascader：
@@ -218,8 +216,46 @@ export default {
   },
   methods: {
     // 删除 商品分类（发送请求）
-    showDeleGoodsCategoryMsgBox(goodsCategory) {},
+    showDeleGoodsCategoryMsgBox(goodsCategory) {
+      this.$confirm(`此操作将永久删除该商品分类, 是否继续?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(async () => {
+          // 删除 商品分类（发送请求）
+          const res = await this.$http.delete(
+            `categories/${goodsCategory.cat_id}`
+          );
+          // console.log(res);
 
+          if (res.data.meta.status == 200) {
+            // 在刷新前，把返回数据的页码设置为 1
+            this.pagenum = 1;
+
+            // 刷新视图（获取商品分类数据列表）
+            this.loadGoodsCategories();
+
+            // 提示删除 商品分类 成功
+            this.$message({
+              type: "success",
+              message: res.data.meta.msg,
+            });
+          } else {
+            // 提示删除 商品分类 失败
+            this.$message({
+              type: "error",
+              message: res.data.meta.msg,
+            });
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
     // 编辑 商品分类（发送请求）
     async editGoodsCategories() {
       // 验证 提交的表单数据
