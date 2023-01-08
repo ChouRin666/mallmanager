@@ -13,6 +13,8 @@ import GoodsAdd from "@/components/goods/goodsadd";
 import GoodsEdit from "@/components/goods/goodsedit";
 import CateParams from "@/components/goods/cateparams";
 import GoodsCate from "@/components/goods/goodscate";
+import Orders from "@/components/orders/orders";
+import Reports from "@/components/reports/reports";
 
 // 单独引用 Message
 import { Message } from "element-ui";
@@ -71,6 +73,16 @@ const router = new Router({
           path: "/categories", // 二级目录，从数据库查询出来，不可随便写
           name: "goodscate",  // 商品管理 > 商品分类（自定义 name 值）
           component: GoodsCate
+        },
+        {
+          path: "/orders", // 二级目录，从数据库查询出来，不可随便写
+          name: "orders",  // 订单管理 > 订单列表（自定义 name 值）
+          component: Orders
+        },
+        {
+          path: "/reports", // 二级目录，从数据库查询出来，不可随便写
+          name: "reports",  // 数据统计 > 数据报表（自定义 name 值）
+          component: Reports
         }
       ]
     }
